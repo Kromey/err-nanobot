@@ -1,0 +1,9 @@
+[Core]
+Name = NanoBot
+Module = nanobot
+
+[Documentation]
+Description = Integrate Err with NaNoWriMo's word count API
+
+[Python]
+Version = 3
