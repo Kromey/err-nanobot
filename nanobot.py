@@ -40,8 +40,12 @@ class NanoBot(BotPlugin):
             for region in data:
                 yield self._region_string.format(**data[region])
         else:
-            count = self._get_user_word_count(args)
-            yield self._user_string.format(user=args, count=count)
+            try:
+                count = self._get_user_word_count(args)
+                yield self._user_string.format(user=args, count=count)
+            except NanoApiError as e:
+                self.log.info("NanoApiError: {}".format(e))
+                yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
 
     def _get_region_word_counts(self):
         counts = dict()
@@ -71,6 +75,6 @@ class NanoBot(BotPlugin):
 
         try:
             return root.find('user_wordcount').text
-        except AttributeError:
-            raise NanoApiError("Could not find user")
+        except AttributeError as e:
+            raise NanoApiError("Could not find user: {}".format(e))
 
