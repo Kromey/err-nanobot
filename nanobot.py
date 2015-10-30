@@ -5,6 +5,10 @@ import urllib
 from errbot import BotPlugin, botcmd
 
 
+class NanoApiError(Exception):
+    pass
+
+
 class NanoBot(BotPlugin):
     """Integrate Err with NaNoWriMo's word count API"""
     min_err_version = '3.0.5' # Optional, but recommended
@@ -16,6 +20,9 @@ class NanoBot(BotPlugin):
             'usa-alaska-elsewhere',
             )
     _region_string = "{region} has {writers} writers averaging {avg} words each for a total of {count} words!"
+
+    _user_api = 'http://nanowrimo.org/wordcount_api/wc/{}'
+    _user_string = "{user} has written {count} words!"
 
     @botcmd
     def word_count(self, mess, args):
@@ -33,7 +40,8 @@ class NanoBot(BotPlugin):
             for region in data:
                 yield self._region_string.format(**data[region])
         else:
-            yield "I'm sorry, I've not yet been implemented with per-user lookups"
+            count = self._get_user_word_count(args)
+            yield self._user_string.format(user=args, count=count)
 
     def _get_region_word_counts(self):
         counts = dict()
@@ -54,4 +62,15 @@ class NanoBot(BotPlugin):
             counts[key] = data
 
         return counts
+
+    def _get_user_word_count(self, user):
+        url = self._user_api.format(user)
+        xml = urllib.request.urlopen(url).read()
+
+        root = ET.fromstring(xml)
+
+        try:
+            return root.find('user_wordcount').text
+        except AttributeError:
+            raise NanoApiError("Could not find user")
 
