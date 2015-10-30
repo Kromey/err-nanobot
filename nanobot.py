@@ -32,9 +32,9 @@ class NanoBot(BotPlugin):
         Alaska regions (Anchorage, Fairbanks, and Elsewhere); you can instead
         supply a NaNoWriMo username to get the word count for that user."""
 
-        if not args:
-            yield "Please wait while I look that up..."
+        yield "Please wait while I look that up..."
 
+        if not args:
             data = self._get_region_word_counts()
 
             for region in data:
