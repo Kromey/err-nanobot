@@ -14,7 +14,7 @@ class NanoBot(BotPlugin):
     """Integrate Err with NaNoWriMo's word count API"""
     min_err_version = '3.0.5' # Optional, but recommended
 
-    _region_api = 'http://nanowrimo.org/wordcount_api/wcregion/{}'
+    _region_api = 'http://nanowrimo.org/wordcount_api/wcregion/{region}'
     _regions = (
             'usa-alaska-anchorage',
             'usa-alaska-fairbanks',
@@ -22,7 +22,7 @@ class NanoBot(BotPlugin):
             )
     _region_string = "{region} has {writers} writers averaging {avg} words each for a total of {count} words!"
 
-    _user_api = 'http://nanowrimo.org/wordcount_api/wc/{}'
+    _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
     _user_string = "{user} has written {count} words!"
 
     @botcmd
@@ -52,7 +52,7 @@ class NanoBot(BotPlugin):
         counts = OrderedDict()
 
         for region in self._regions:
-            url = self._region_api.format(region)
+            url = self._region_api.format(region=region)
             xml = urllib.request.urlopen(url).read()
 
             root = ET.fromstring(xml)
@@ -69,7 +69,7 @@ class NanoBot(BotPlugin):
         return counts
 
     def _get_user_word_count(self, user):
-        url = self._user_api.format(user)
+        url = self._user_api.format(user=user)
         xml = urllib.request.urlopen(url).read()
 
         root = ET.fromstring(xml)
