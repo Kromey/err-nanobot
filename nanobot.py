@@ -52,10 +52,7 @@ class NanoBot(BotPlugin):
         counts = OrderedDict()
 
         for region in self._regions:
-            url = self._region_api.format(region=region)
-            xml = urllib.request.urlopen(url).read()
-
-            root = ET.fromstring(xml)
+            root = self._get_api_xml(self._region_api, region=region)
             data = dict()
 
             key = root.find('rname').text.split(None)[-1]
@@ -69,13 +66,19 @@ class NanoBot(BotPlugin):
         return counts
 
     def _get_user_word_count(self, user):
-        url = self._user_api.format(user=user)
-        xml = urllib.request.urlopen(url).read()
-
-        root = ET.fromstring(xml)
+        root = self._get_api_xml(self._user_api, user=user)
 
         try:
             return root.find('user_wordcount').text
         except AttributeError as e:
             raise NanoApiError("Could not find user: {}".format(e))
+
+    def _get_api_xml(self, url, **kwargs):
+        """Format the API URL, then return the XML fetched from it."""
+        url = url.format(**kwargs)
+        xml = urllib.request.urlopen(url).read()
+
+        root = ET.fromstring(xml)
+
+        return root
 
