@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import urllib
+from collections import OrderedDict
 
 
 from errbot import BotPlugin, botcmd
@@ -48,7 +49,7 @@ class NanoBot(BotPlugin):
                 yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
 
     def _get_region_word_counts(self):
-        counts = dict()
+        counts = OrderedDict()
 
         for region in self._regions:
             url = self._region_api.format(region)
