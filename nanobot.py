@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import urllib
+from socket import timeout
 from collections import OrderedDict
 
 
@@ -36,10 +37,14 @@ class NanoBot(BotPlugin):
         yield "Please wait while I look that up..."
 
         if not args:
-            data = self._get_region_word_counts()
+            try:
+                data = self._get_region_word_counts()
 
-            for region in data:
-                yield self._region_string.format(**data[region])
+                for region in data:
+                        yield self._region_string.format(**data[region])
+            except (timeout, urllib.error.URLError) as e:
+                self.log.info("Failed to get region word counts: {}".format(e))
+                yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
         else:
             try:
                 count = self._get_user_word_count(args)
@@ -47,6 +52,9 @@ class NanoBot(BotPlugin):
             except NanoApiError as e:
                 self.log.info("NanoApiError: {}".format(e))
                 yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
+            except (timeout, urllib.error.URLError) as e:
+                self.log.info("Failed to get user word count for '{}': {}".format(args, e))
+                yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
 
     def _get_region_word_counts(self):
         counts = OrderedDict()
@@ -76,7 +84,7 @@ class NanoBot(BotPlugin):
     def _get_api_xml(self, url, **kwargs):
         """Format the API URL, then return the XML fetched from it."""
         url = url.format(**kwargs)
-        xml = urllib.request.urlopen(url).read()
+        xml = urllib.request.urlopen(url, timeout=5).read()
 
         root = ET.fromstring(xml)
 
