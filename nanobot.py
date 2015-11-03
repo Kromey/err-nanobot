@@ -58,7 +58,7 @@ class NanoBot(BotPlugin):
             key = root.find('rname').text.split(None)[-1]
             data['region'] = key
             data['count'] = root.find('region_wordcount').text
-            data['avg'] = root.find('average').text
+            data['avg'] = round(float(root.find('average').text), 1)
             data['writers'] = root.find('count').text
 
             counts[key] = data
