@@ -36,25 +36,23 @@ class NanoBot(BotPlugin):
 
         yield "Please wait while I look that up..."
 
-        if not args:
-            try:
+        try:
+            if not args:
                 data = self._get_region_word_counts()
 
                 for region in data:
                         yield self._region_string.format(**data[region])
-            except (timeout, urllib.error.URLError) as e:
-                self.log.info("Failed to get region word counts: {}".format(e))
-                yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
-        else:
-            try:
-                count = self._get_user_word_count(args)
-                yield self._user_string.format(user=args, count=count)
-            except NanoApiError as e:
-                self.log.info("NanoApiError: {}".format(e))
-                yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
-            except (timeout, urllib.error.URLError) as e:
-                self.log.info("Failed to get user word count for '{}': {}".format(args, e))
-                yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
+            else:
+                try:
+                    count = self._get_user_word_count(args)
+                    yield self._user_string.format(user=args, count=count)
+                except NanoApiError as e:
+                    self.log.info("NanoApiError: {}".format(e))
+                    yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
+
+        except (timeout, urllib.error.URLError) as e:
+            self.log.info("Failed to get word count (args: '{}'): {}".format(args, e))
+            yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
 
     def _get_region_word_counts(self):
         counts = OrderedDict()
