@@ -72,6 +72,7 @@ class NanoBot(BotPlugin):
         return counts
 
     def _get_user_word_count(self, user):
+        user = user.replace(' ', '-')
         root = self._get_api_xml(self._user_api, user=user)
 
         try:
