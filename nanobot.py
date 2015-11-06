@@ -2,6 +2,8 @@ import xml.etree.ElementTree as ET
 import urllib
 from socket import timeout
 from collections import OrderedDict
+import datetime
+import calendar
 
 
 from errbot import BotPlugin, botcmd
@@ -57,6 +59,43 @@ class NanoBot(BotPlugin):
         except (timeout, urllib.error.URLError) as e:
             self.log.info("Failed to get word count (args: '{}'): {}".format(args, e))
             yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
+
+    @botcmd
+    def word_goal(self, mess, args):
+        """Find out where you *should* be with your word count
+
+        With no additional argument, this command assumes the NaNoWriMo default
+        goal of 50,000 words. For over-achievers, or for Young Writers with
+        their own goals, simply supply your goal after the command, e.g.
+        "word goal 75000", to have the bot use that goal in calculations.
+
+        The bot makes no assumptions that you constrain yourself only to the
+        month of November, so this command can be used for NaNoWriMo, Camp
+        NaNoWriMo, or your own personal adventures in writing. The calculations
+        always take into account the actual number of days in the current month.
+        """
+
+        if args:
+            # People like to use commas; remove them
+            goal = args.replace(',', '')
+            # Support shorthand like "10k" or "10K"
+            goal = goal.lower().replace('k', '000')
+            # Convert it to an actual number, truncating if necessary
+            goal = int(float(goal))
+        else:
+            goal = 50000
+
+        date = datetime.date.today()
+
+        # Returns (weekday of the 1st, last day) for the given month
+        # We only want the last day, aka the number of days
+        days = calendar.monthrange(date.year, date.month)[1]
+
+        # Calculate how much progress per day, times how many days elapsed
+        par = round(goal / days * date.day)
+
+        # TODO: (Configurable?) locale, and use the 'n' option instead of ','
+        return "To reach {goal:,} words, you should be at {par:,} words today".format(goal=goal, par=par)
 
     def _get_region_word_counts(self):
         counts = OrderedDict()
