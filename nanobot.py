@@ -21,7 +21,7 @@ class NanoBot(BotPlugin):
             'usa-alaska-fairbanks',
             'usa-alaska-elsewhere',
             )
-    _region_string = "{region} has {writers} writers averaging {avg} words each for a total of {count} words!"
+    _region_string = "{region} has {writers} writers averaging {avg} words for a total of {count} words!"
 
     _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
     _user_string = "{user} has written {count} words!"
@@ -40,8 +40,12 @@ class NanoBot(BotPlugin):
             if not args:
                 data = self._get_region_word_counts()
 
+                response = []
+
                 for region in data:
-                        yield self._region_string.format(**data[region])
+                    response.append(self._region_string.format(**data[region]))
+
+                yield "\n".join(response)
             else:
                 try:
                     count = self._get_user_word_count(args)
