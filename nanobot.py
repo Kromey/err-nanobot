@@ -50,8 +50,8 @@ class NanoBot(BotPlugin):
                 yield "\n".join(response)
             else:
                 try:
-                    count = self._get_user_word_count(args)
-                    yield self._user_string.format(user=args, count=count)
+                    user, count = self._get_user_word_count(args)
+                    yield self._user_string.format(user=user, count=count)
                 except NanoApiError as e:
                     self.log.info("NanoApiError: {}".format(e))
                     yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
@@ -118,8 +118,11 @@ class NanoBot(BotPlugin):
         user = user.replace(' ', '-')
         root = self._get_api_xml(self._user_api, user=user)
 
+        uname = root.find('uname').text
+        wcount = int(root.find('user_wordcount').text)
+
         try:
-            return int(root.find('user_wordcount').text)
+            return (uname, wcount)
         except AttributeError as e:
             raise NanoApiError("Could not find user: {}".format(e))
 
