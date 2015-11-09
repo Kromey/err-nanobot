@@ -23,10 +23,10 @@ class NanoBot(BotPlugin):
             'usa-alaska-fairbanks',
             'usa-alaska-elsewhere',
             )
-    _region_string = "{region} has {writers} writers averaging {avg} words for a total of {count} words!"
+    _region_string = "{region} has {writers:,} writers averaging {avg:,.2f} words for a total of {count:,} words!"
 
     _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
-    _user_string = "{user} has written {count} words!"
+    _user_string = "{user} has written {count:,} words!"
 
     @botcmd
     def word_count(self, mess, args):
@@ -106,9 +106,9 @@ class NanoBot(BotPlugin):
 
             key = root.find('rname').text.split(None)[-1]
             data['region'] = key
-            data['count'] = root.find('region_wordcount').text
-            data['avg'] = round(float(root.find('average').text), 1)
-            data['writers'] = root.find('count').text
+            data['count'] = int(root.find('region_wordcount').text)
+            data['avg'] = float(root.find('average').text)
+            data['writers'] = int(root.find('count').text)
 
             counts[key] = data
 
@@ -119,7 +119,7 @@ class NanoBot(BotPlugin):
         root = self._get_api_xml(self._user_api, user=user)
 
         try:
-            return root.find('user_wordcount').text
+            return int(root.find('user_wordcount').text)
         except AttributeError as e:
             raise NanoApiError("Could not find user: {}".format(e))
 
