@@ -118,10 +118,10 @@ class NanoBot(BotPlugin):
         user = user.replace(' ', '-')
         root = self._get_api_xml(self._user_api, user=user)
 
-        uname = root.find('uname').text
-        wcount = int(root.find('user_wordcount').text)
-
         try:
+            uname = root.find('uname').text
+            wcount = int(root.find('user_wordcount').text)
+
             return (uname, wcount)
         except AttributeError as e:
             raise NanoApiError("Could not find user: {}".format(e))
