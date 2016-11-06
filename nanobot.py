@@ -25,6 +25,7 @@ class NanoBot(BotPlugin):
 
     _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
     _user_string = "{user} has written {count:,} words!"
+    _user_string_today = "{user} has written {today:,} words today for a total of {count:,} words!"
 
     @botcmd
     def word_count(self, mess, args):
@@ -48,8 +49,11 @@ class NanoBot(BotPlugin):
                 yield "\n".join(response)
             else:
                 try:
-                    user, count = self._get_user_word_count(args)
-                    yield self._user_string.format(user=user, count=count)
+                    user, count, today = self._get_user_word_count(args)
+                    if today:
+                        yield self._user_string_today.format(user=user, count=count, today=today)
+                    else:
+                        yield self._user_string.format(user=user, count=count)
                 except NanoApiError as e:
                     self.log.info("NanoApiError: {}".format(e))
                     yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
@@ -116,10 +120,14 @@ class NanoBot(BotPlugin):
         user = User(user)
 
         try:
+            try:
+                today = user.history[datetime.date.today().day-1].wordcount
+            except:
+                today = None
             uname = user.name
             wcount = user.wordcount
 
-            return (uname, wcount)
+            return (uname, wcount, today)
         except KeyError as e:
             raise NanoApiError("Could not find user: {}".format(e))
 
