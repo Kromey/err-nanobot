@@ -78,10 +78,15 @@ class NanoBot(BotPlugin):
         donations.sort(key=lambda region: region['donations'], reverse=True)
 
         response = []
+        total = 0
         for donation in donations:
+            total += float(donation['donations'])
             response.append(self._region_donations_string.format(**donation))
 
         yield "\n".join(response)
+
+        if total:
+            yield "That's ${total:,} donated. Commendable!".format(total=total)
 
     @botcmd
     def word_goal(self, mess, args):
