@@ -1,7 +1,4 @@
-import xml.etree.ElementTree as ET
-import urllib
 from socket import timeout
-from collections import OrderedDict
 import datetime
 import calendar
 
@@ -57,7 +54,7 @@ class NanoBot(BotPlugin):
                     self.log.info("NanoApiError: {}".format(e))
                     yield "Something went wrong, perhaps {} isn't a NaNoWriMo username?".format(args)
 
-        except (timeout, urllib.error.URLError) as e:
+        except timeout as e:
             self.log.info("Failed to get word count (args: '{}'): {}".format(args, e))
             yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
 
@@ -125,13 +122,4 @@ class NanoBot(BotPlugin):
             return (uname, wcount)
         except KeyError as e:
             raise NanoApiError("Could not find user: {}".format(e))
-
-    def _get_api_xml(self, url, **kwargs):
-        """Format the API URL, then return the XML fetched from it."""
-        url = url.format(**kwargs)
-        xml = urllib.request.urlopen(url, timeout=5).read()
-
-        root = ET.fromstring(xml)
-
-        return root
 
