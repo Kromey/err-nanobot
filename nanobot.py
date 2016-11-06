@@ -7,6 +7,7 @@ import calendar
 
 
 from errbot import BotPlugin, botcmd
+from pynano import User, Region
 
 
 class NanoApiError(Exception):
@@ -45,7 +46,7 @@ class NanoBot(BotPlugin):
                 response = []
 
                 for region in data:
-                    response.append(self._region_string.format(**data[region]))
+                    response.append(self._region_string.format(**region))
 
                 yield "\n".join(response)
             else:
@@ -98,20 +99,20 @@ class NanoBot(BotPlugin):
         return "To reach {goal:,} words, you should be at {par:,} words today".format(goal=goal, par=par)
 
     def _get_region_word_counts(self):
-        counts = OrderedDict()
+        counts = []
 
         for region in self._regions:
-            root = self._get_api_xml(self._region_api, region=region)
-            data = dict()
+            r = Region(region)
+            data = {}
 
-            key = root.find('rname').text.split(None)[-1]
-            data['region'] = key
-            data['count'] = int(root.find('region_wordcount').text)
-            data['avg'] = float(root.find('average').text)
-            data['writers'] = int(root.find('count').text)
+            data['region'] = r.name.split(' :: ')[-1]
+            data['count'] = r.wordcount
+            data['avg'] = r.average
+            data['writers'] = r.writers
 
-            counts[key] = data
+            counts.append(data)
 
+        counts.sort(key=lambda region: region['avg'], reverse=True)
         return counts
 
     def _get_user_word_count(self, user):
