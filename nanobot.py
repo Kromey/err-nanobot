@@ -22,7 +22,7 @@ class NanoBot(BotPlugin):
             'usa-alaska-elsewhere',
             )
     _region_string = "{region} has {writers:,} writers averaging {avg:,.2f} words for a total of {count:,} words!"
-    _region_donations_string = "{region} has donated ${donations:,}!"
+    _region_donations_string = "{region} has donated ${donations:,.2f}!"
 
     _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
     _user_string = "{user} has written {count:,} words!"
@@ -86,7 +86,7 @@ class NanoBot(BotPlugin):
         yield "\n".join(response)
 
         if total:
-            yield "That's ${total:,} donated. Commendable!".format(total=total)
+            yield "That's ${total:,.2f} donated. Commendable!".format(total=total)
 
     @botcmd
     def word_goal(self, mess, args):
