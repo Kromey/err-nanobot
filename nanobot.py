@@ -22,6 +22,7 @@ class NanoBot(BotPlugin):
             'usa-alaska-elsewhere',
             )
     _region_string = "{region} has {writers:,} writers averaging {avg:,.2f} words for a total of {count:,} words!"
+    _region_donations_string = "{region} has donated ${donations:,}!"
 
     _user_api = 'http://nanowrimo.org/wordcount_api/wc/{user}'
     _user_string = "{user} has written {count:,} words!"
@@ -61,6 +62,26 @@ class NanoBot(BotPlugin):
         except timeout as e:
             self.log.info("Failed to get word count (args: '{}'): {}".format(args, e))
             yield "I'm sorry, the NaNoWriMo website isn't talking to me right now. Maybe try again later."
+
+    @botcmd
+    def donations(self, mess, args):
+        yield "Please wait while I look that up..."
+
+        donations = []
+        for region in self._regions:
+            r = Region(region)
+            donations.append({
+                'region': r.name.split(' :: ')[-1],
+                'donations': r.donations,
+                })
+
+        donations.sort(key=lambda region: region['donations'], reverse=True)
+
+        response = []
+        for donation in donations:
+            response.append(self._region_donations_string.format(**donation))
+
+        yield "\n".join(response)
 
     @botcmd
     def word_goal(self, mess, args):
