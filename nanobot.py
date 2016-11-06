@@ -116,15 +116,14 @@ class NanoBot(BotPlugin):
         return counts
 
     def _get_user_word_count(self, user):
-        user = user.replace(' ', '-')
-        root = self._get_api_xml(self._user_api, user=user)
+        user = User(user)
 
         try:
-            uname = root.find('uname').text
-            wcount = int(root.find('user_wordcount').text)
+            uname = user.name
+            wcount = user.wordcount
 
             return (uname, wcount)
-        except AttributeError as e:
+        except KeyError as e:
             raise NanoApiError("Could not find user: {}".format(e))
 
     def _get_api_xml(self, url, **kwargs):
