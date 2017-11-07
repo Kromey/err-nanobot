@@ -28,6 +28,66 @@ class NanoBot(BotPlugin):
     _user_string = "{user} has written {count:,} words!"
     _user_string_today = "{user} has written {today:,} words today for a total of {count:,} words!"
 
+    _real_jid = {}
+
+    def activate(self):
+        if self._bot.mode == 'xmpp':
+            #XMPP: Listen for MUC Presence stanzas so we can get real JIDs of occupants
+            self._bot.conn.add_event_handler('groupchat_presence', self.update_jid_index)
+            self.log.info('Attached groupchat_presence listener')
+        super().activate()
+
+    def deactivate(self):
+        if self._bot.mode == 'xmpp':
+            #XMPP: Deactivating the plugin, remove our listener
+            self._bot.conn.del_event_handler('groupchat_presence', self.update_jid_index)
+            self.log.info('Removed groupchat_presence listener')
+        super().deactivate()
+
+    def update_jid_index(self, event):
+        """Update the index of real JIDs
+
+        Each time we get a Presence stanza from a MUC, we want to extract the
+        real JID from it and store it in our index. We can then later look up an
+        occupant JID in our index to find their real JID.
+        """
+        try:
+            occupant = event['from'].full #Full JID identifies the user; bare is just the room
+            real_jid = event['muc']['jid'].bare #Bare JID here in case of multiple connections
+            evt_type = event['type']
+
+            if not real_jid:
+                #We couldn't get the real JID from this stanza, probably because
+                #room is anonymous and we don't have the necessary privileges
+                self.log.warning('Unable to get real JID from {}'.format(event))
+                return
+
+            if evt_type == 'unavailable':
+                #User is no longer available (e.g. left room, changing nick)
+                #Remove from our index
+                try:
+                    del(self._real_jid[occupant])
+                except KeyError:
+                    pass
+            else:
+                #Add the user to our index
+                self._real_jid[occupant] = real_jid
+
+            self.log.debug('Updated real JID index from {}'.format(event))
+        except:
+            self.log.exception('Failed to process event {}'.format(event))
+
+    @botcmd
+    def real_jid(self, mess, args):
+        try:
+            return self._real_jid[mess.frm.person]
+        except KeyError:
+            return "I'm sorry, I don't know who you really are"
+
+    @botcmd(admin_only=True)
+    def jid_index(self, mess, args):
+        return str(self._real_jid)
+
     @botcmd
     def word_count(self, mess, args):
         """Get word count information
